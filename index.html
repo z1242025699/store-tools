@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>门店 AI 工具集 · 章文波</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#ffffff; --fg:#1a1d21; --muted:#6b7280;
+    --line:#e5e7eb; --accent:#0f62fe; --accent-soft:#eef4ff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; padding:32px 18px 64px; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.7; font-size:16px;
+  }
+  .wrap{max-width:680px;margin:0 auto;}
+  header{margin-bottom:28px;}
+  .tag{
+    display:inline-block; font-size:12px; letter-spacing:.08em; color:var(--accent);
+    background:var(--accent-soft); padding:3px 10px; border-radius:99px; margin-bottom:14px;
+  }
+  h1{font-size:26px; line-height:1.35; margin:0 0 10px; letter-spacing:-.01em;}
+  header p{margin:0; color:var(--muted); font-size:15px;}
+  .list{display:flex; flex-direction:column; gap:14px;}
+  a.card{
+    display:block; background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:18px 20px; text-decoration:none; color:inherit;
+    transition:border-color .15s, box-shadow .15s, transform .15s;
+  }
+  a.card:hover{border-color:var(--accent); box-shadow:0 4px 18px rgba(15,98,254,.10); transform:translateY(-1px);}
+  .card .top{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+  .ico{
+    width:38px; height:38px; flex:0 0 38px; border-radius:10px;
+    background:var(--accent-soft); display:flex; align-items:center; justify-content:center;
+    font-size:19px;
+  }
+  .card h2{font-size:17px; margin:0; font-weight:650;}
+  .card p{margin:0; color:var(--muted); font-size:14.5px;}
+  .meta{margin-top:10px; font-size:12.5px; color:#9aa1ab;}
+  footer{
+    margin-top:34px; padding-top:18px; border-top:1px solid var(--line);
+    color:var(--muted); font-size:13px;
+  }
+  footer strong{color:var(--fg); font-weight:600;}
+  @media (max-width:420px){
+    body{padding:24px 14px 48px;}
+    h1{font-size:22px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="tag">零售门店 · AI 工具</span>
+    <h1>三个每天在用的门店工具</h1>
+    <p>都在解决同一类问题：把重复劳动变成点一下。手机打开就能用，两个不需要联网。</p>
+  </header>
+
+  <div class="list">
+
+    <a class="card" href="calculator.html">
+      <div class="top">
+        <div class="ico">📅</div>
+        <h2>临期保质计算器</h2>
+      </div>
+      <p>选商品、填生产日期，自动算出到期、转临期、下架三个日子，并给出当前状态。结果可一键复制发微信。</p>
+      <div class="meta">同事已在使用 · 覆盖 242 个 SKU · 离线可用</div>
+    </a>
+
+    <a class="card" href="assistant.html">
+      <div class="top">
+        <div class="ico">💬</div>
+        <h2>冻品管家</h2>
+      </div>
+      <p>242 个商品的保质期、储存条件、临期规则，直接问就行。不联网、不调用接口，所以不会编。</p>
+      <div class="meta">42 条预置问答 + 规则引擎 · 离线可用</div>
+    </a>
+
+    <a class="card" href="lookup.html">
+      <div class="top">
+        <div class="ico">🔍</div>
+        <h2>商品速查（手机版）</h2>
+      </div>
+      <p>输商品号、名字、库区，秒出结果。给手机屏重新排过，单手能操作。</p>
+      <div class="meta">模糊搜索 · 支持库区速查 · 离线可用</div>
+    </a>
+
+  </div>
+
+  <footer>
+    <strong>章文波</strong> · 零售一线 5 年（阿联酋 2 年 + 山姆 3 年）<br>
+    这些工具都是在自己上班的门店里先用起来的，不是练习项目。
+  </footer>
+
+</div>
+</body>
+</html>

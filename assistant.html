@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f5fa8">
+<title>鲜食冻品管家</title>
+<style>
+:root{--fg:#1b1f24;--muted:#5f6b7a;--line:#e3e6ea;--blue:#1f5fa8;--bg:#f3f5f8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+.hdr{background:linear-gradient(180deg,#1f5fa8,#1b5393);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;text-align:center;flex:none}
+.hdr h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.3px}
+.hdr .sub{font-size:13px;opacity:.9;margin-top:2px}
+.msgs{flex:1;overflow-y:auto;padding:12px 12px 4px;-webkit-overflow-scrolling:touch}
+.msg{margin:0 0 12px;display:flex}
+.msg.me{justify-content:flex-end}
+.bub{max-width:88%;padding:10px 13px;border-radius:14px;font-size:15.5px;line-height:1.68;word-break:break-word;white-space:pre-wrap}
+.me .bub{background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.bot .bub{background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.src{display:block;margin-top:9px;padding-top:7px;border-top:1px dashed #e6e9ee;font-size:12.5px;color:#8a94a3;white-space:normal}
+.quick{flex:none;display:flex;gap:8px;overflow-x:auto;padding:6px 12px 8px;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.qb{flex:none;border:1px solid #cfd8e3;background:#fff;color:#2b4a70;border-radius:999px;padding:7px 13px;font-size:14px;cursor:pointer;white-space:nowrap}
+.qb:active{background:#eaf1fa}
+.bar{flex:none;display:flex;gap:8px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
+.bar input{flex:1;height:46px;padding:0 13px;font-size:16px;border:1.5px solid #cdd4dd;border-radius:12px;background:#fff;color:var(--fg)}
+.bar input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(31,95,168,.12)}
+.bar button{flex:none;width:62px;height:46px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:600}
+.bar button:active{background:#1a4f8c}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <h1>鲜食冻品管家</h1>
+  <div class="sub" id="sub">鲜食冻品</div>
+</header>
+<main class="msgs" id="msgs"></main>
+<div class="quick" id="quick"></div>
+<footer class="bar">
+  <input id="in" type="text" placeholder="问一句，比如：45 天保质期什么时候下架" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <button id="go" type="button">发送</button>
+</footer>
+<script>
+var DATA = [{"no":"79255","long":"640792559","name":"圃美多切件泡菜","spec":"1X1.2KG","zone":"44","cat":"","price":"27.8","days":"90","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"133124","long":"641331249","name":"合膳龙糖水黄桃 K4","spec":"1.5KG","zone":"42","cat":"","price":"","days":"180","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"424528","long":"644245289","name":"MM 小青柠汁饮料 P","spec":"2X1L","zone":"42","cat":"","price":"","days":"46","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"602832","long":"646028329","name":"I.MM 香草冰淇淋 K4","spec":"香草味冰淇淋","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"603736","long":"646037369","name":"MM 有机深海小海带","spec":"1KG","zone":"44","cat":"","price":"55.8","days":"270","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"605304","long":"646053049","name":"MM 精制韧豆腐","spec":"2X400G","zone":"42","cat":"","price":"","days":"30","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"605311","long":"646053119","name":"MM 精制老豆腐","spec":"2X400G","zone":"42","cat":"","price":"","days":"30","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"605318","long":"646053189","name":"MM 精制香干","spec":"2X260G","zone":"42","cat":"","price":"","days":"30","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980004057","long":"980004057","name":"I.冷冻蓝莓","spec":"1.36KG","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980005543","long":"980005543","name":"尊乐百搭车达肠","spec":"720G","zone":"44","cat":"","price":"69.9","days":"75","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980016969","long":"980016969","name":"MM 小青柠果汁 P","spec":"8X300ML","zone":"42","cat":"","price":"","days":"46","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980025768","long":"980025768","name":"奥尔良鸡翅中","spec":"1.38KG","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980040093","long":"980040093","name":"MM 西柚茶 K4","spec":"6×300ML","zone":"42","cat":"","price":"","days":"29","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980052567","long":"980052567","name":"小贝勒儿童奶酪","spec":"原味 200G","zone":"44","cat":"","price":"49.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980052818","long":"980052818","name":"乐芝牛小三角奶酪","spec":"原味涂抹 3X128G","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980058545","long":"980058545","name":"紫米勒稀奶油","spec":"1X1L","zone":"44","cat":"","price":"49.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980064274","long":"980064274","name":"MM 鲜牛奶 P","spec":"1X2L","zone":"42","cat":"42 果汁\\奶制品\\豆制品(40 冷藏鲜牛奶)","price":"17.9","days":"15","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980065029","long":"980065029","name":"MM 香草发酵乳 P.P","spec":"135GX12","zone":"42","cat":"","price":"","days":"25","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980072146","long":"980072146","name":"鲜嫩脆皮鸡块","spec":"1X2KG","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980078378","long":"980078378","name":"I.GALA 苹果汁","spec":"2X1.5L","zone":"42","cat":"","price":"","days":"271","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980091887","long":"980091887","name":"MM 希腊式酸奶","spec":"3X410G","zone":"42","cat":"","price":"","days":"30","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980224109","long":"980224109","name":"牛乳芝士蛋糕 P","spec":"芝士蛋糕","zone":"44","cat":"","price":"","days":"182","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980228643","long":"980228643","name":"哈尔滨红肠","spec":"双联包","zone":"44","cat":"","price":"69.9","days":"91","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980230364","long":"980230364","name":"海神叉深海鳕鱼排","spec":"内附塔塔酱搭配","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980231655","long":"980231655","name":"G'NATURE 冰淇淋","spec":"G'NATURE 冰淇淋","zone":"44","cat":"","price":"","days":"732","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980232242","long":"980232242","name":"CP 板烧腿排","spec":"1.3KG/袋","zone":"44","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980232355","long":"980232355","name":"美好香酥小酥肉","spec":"小酥肉","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980233494","long":"980233494","name":"伊斯尼布里奶酪","spec":"诺曼底优质奶源","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980235844","long":"980235844","name":"清美醇豆浆 P","spec":"2X1L","zone":"42","cat":"","price":"","days":"28","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980236863","long":"980236863","name":"I.冷冻混合莓果","spec":"1.36KG","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980239279","long":"980239279","name":"MM100%橙汁 P","spec":"3L","zone":"42","cat":"","price":"","days":"28","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980244163","long":"980244163","name":"I.覆盆子莓果挞","spec":"550G","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980245326","long":"980245326","name":"1833 切达奶酪","spec":"24个月成熟期","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980246232","long":"980246232","name":"麦肯冷冻大薯饼","spec":"麦肯冷冻大薯饼","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980250737","long":"980250737","name":"鲜葱手抓饼","spec":"3.6KG(10片*3包)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980253513","long":"980253513","name":"佳沃金枕榴莲果肉","spec":"DURIAN PULP","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980254144","long":"980254144","name":"马斯卡彭","spec":"意式奶酪","zone":"44","cat":"","price":"48.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980264087","long":"980264087","name":"直火火炼黑猪猪油","spec":"黑猪猪油","zone":"44","cat":"","price":"49.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980268827","long":"980268827","name":"17.5°NFC橙汁 P","spec":"2*900ML","zone":"42","cat":"","price":"","days":"45","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980285259","long":"980285259","name":"英式早餐香肠","spec":"坎伯兰风味","zone":"44","cat":"","price":"55.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980286827","long":"980286827","name":"元气猪柳蛋麦芬","spec":"JIMMY DEAN 三明治","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980288861","long":"980288861","name":"雀巢甜筒10支装","spec":"香草味，巧克力味","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980290021","long":"980290021","name":"冠益乳早8吨吨桶 P","spec":"6X380G","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980293096","long":"980293096","name":"生牛乳绿豆雪糕","spec":"佰豆集生牛乳绿豆","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980297073","long":"980297073","name":"利茶铺泡芙","spec":"抹茶泡芙","zone":"44","cat":"","price":"","days":"182","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980297973","long":"980297973","name":"烧烤大油边","spec":"烧烤特色产品","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980299025","long":"980299025","name":"MM 台式牛肉面 K4","spec":"4X580G","zone":"89","cat":"","price":"75.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980304038","long":"980304038","name":"薛记炒货烤栗栗","spec":"冷冻栗","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980307388","long":"980307388","name":"无糖黑咖啡 P","spec":"3X900ML","zone":"42","cat":"","price":"","days":"60","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980309662","long":"980309662","name":"农夫山泉食用冰","spec":"纯透食用冰","zone":"44","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980323165","long":"980323165","name":"迷你黄油粒","spec":"总统黄油64粒","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980323815","long":"980323815","name":"泰森炙烤鸡胸肉条","spec":"冷藏全熟鸡胸肉","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980328359","long":"980328359","name":"MM 香菇青菜包 Y","spec":"1.56KG(24个)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980328360","long":"980328360","name":"MM 宁波水磨汤圆 P","spec":"960G","zone":"89","cat":"","price":"56.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980329321","long":"980329321","name":"光明娟姗鲜牛奶","spec":"900MLX2","zone":"42","cat":"","price":"","days":"15","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980330215","long":"980330215","name":"黑松露牛肉炒饭","spec":"300GX5","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980332337","long":"980332337","name":"芝士火腿佛卡夏","spec":"300GX3","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980335017","long":"980335017","name":"G'NATURE 巧克力","spec":"G'NATURE 巧克力","zone":"44","cat":"","price":"","days":"731","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980340977","long":"980340977","name":"西班牙酸面包","spec":"95G*6","zone":"89","cat":"","price":"37.9","days":"451","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980341575","long":"980341575","name":"焦糖烧生牛乳布丁","spec":"8X(120G+5G)","zone":"42","cat":"","price":"","days":"21","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980341646","long":"980341646","name":"黑猪肉笋丁烧卖","spec":"1.44KG(12只*2包)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980341818","long":"980341818","name":"鲜炖燕窝","spec":"7×45G","zone":"42","cat":"","price":"","days":"90","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980343600","long":"980343600","name":"MM 高钙原味酸奶 P","spec":"1.8KGX2","zone":"42","cat":"","price":"","days":"28","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980346506","long":"980346506","name":"王饺子虾仁珍鲜","spec":"245X4","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980346534","long":"980346534","name":"贵州红酸汤米粉","spec":"4×459G","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980348567","long":"980348567","name":"湾仔虾皇小云吞 W","spec":"1.278KG(156只)","zone":"89","cat":"","price":"","days":"273","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980349521","long":"980349521","name":"MM 低脂鲜牛奶 P","spec":"1X2L","zone":"42","cat":"","price":"","days":"15","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980355977","long":"980355977","name":"科尔比奶酪片","spec":"227G*3","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980358190","long":"980358190","name":"瑞士埃门塔尔干酪","spec":"瑞士埃门塔尔干酪","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980358191","long":"980358191","name":"瑞士板烧奶酪","spec":"300G*2","zone":"44","cat":"","price":"99.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980363281","long":"980363281","name":"台式劲脆盐酥鸡","spec":"盐酥鸡升级版","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980365607","long":"980365607","name":"四海鱼蛋牛筋丸","spec":"175GX4","zone":"89","cat":"","price":"","days":"60","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980367712","long":"980367712","name":"鱼极五福到家","spec":"五福到家","zone":"89","cat":"","price":"59.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980368873","long":"980368873","name":"MM 牛肉丸 P","spec":"800G","zone":"89","cat":"","price":"79.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980369199","long":"980369199","name":"高蛋白发酵乳 P","spec":"10X135G","zone":"42","cat":"","price":"","days":"25","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980369547","long":"980369547","name":"I.MM 扁桃仁冰淇淋","spec":"756G（12支）","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980372496","long":"980372496","name":"HOKILA 鳕鱼芝士条","spec":"鳕鱼芝士条","zone":"44","cat":"","price":"49.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980372788","long":"980372788","name":"泰森 炭烤鸡架","spec":"明火真炭烤","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980373334","long":"980373334","name":"荷美尔原切培根","spec":"原切培根","zone":"44","cat":"","price":"79.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980377999","long":"980377999","name":"香煎鲜虾饼","spec":"香煎鲜虾饼","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980380495","long":"980380495","name":"MM 大虾黑猪云吞 P","spec":"1.156KG(48只)","zone":"89","cat":"","price":"69.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980380612","long":"980380612","name":"红瑶烤蜜薯","spec":"红瑶烤蜜薯","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980380647","long":"980380647","name":"MM 鲜酪乳 K4","spec":"12*120G","zone":"42","cat":"","price":"","days":"21","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980383186","long":"980383186","name":"韩式紫菜包饭卷","spec":"230GX4","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980383515","long":"980383515","name":"什锦泡菜","spec":"什锦泡菜 2KG","zone":"44","cat":"","price":"39.9","days":"182","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980387947","long":"980387947","name":"鲜绿杨枝甘露","spec":"8*290G","zone":"42","cat":"","price":"","days":"21","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980390219","long":"980390219","name":"安格斯牛肉汉堡","spec":"安格斯牛肉汉堡","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980390240","long":"980390240","name":"MM 有机高钙鲜奶 P","spec":"240GX8","zone":"42","cat":"","price":"","days":"15","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980391508","long":"980391508","name":"黑森林风味火腿","spec":"黑森林风味火腿","zone":"44","cat":"","price":"89","days":"","band":"","check":"","pre":"","off":""},{"no":"980392418","long":"980392418","name":"奥利奥乳酪蛋糕","spec":"乳酪蛋糕","zone":"44","cat":"","price":"","days":"123","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980393232","long":"980393232","name":"诺心经典原味生巧","spec":"诺心经典原味生巧","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980396491","long":"980396491","name":"榴莲披萨","spec":"225G*3","zone":"89","cat":"","price":"75.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980400238","long":"980400238","name":"海鲜全家福水饺","spec":"1.056KG(48只)","zone":"89","cat":"","price":"","days":"366","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980400840","long":"980400840","name":"MM 黑猪荠菜馄饨 Y4","spec":"1.588KG(60只)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980401839","long":"980401839","name":"哈肉联熏酱鲜猪蹄","spec":"哈肉联熏酱鲜猪蹄","zone":"44","cat":"","price":"","days":"60","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980401887","long":"980401887","name":"湾仔黑猪肉生煎 W","spec":"1.19KG(32只)","zone":"89","cat":"","price":"","days":"273","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980402615","long":"980402615","name":"四海鱼蛋牛筋丸","spec":"BULK980365607","zone":"89","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980403011","long":"980403011","name":"低GI 水果玉米粒","spec":"低GI 水果玉米粒","zone":"44","cat":"","price":"39.9","days":"180","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980404422","long":"980404422","name":"奶油莳萝三文鱼柳","spec":"奶油莳萝三文鱼柳","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980404446","long":"980404446","name":"铁锅焖面","spec":"400GX4","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980406548","long":"980406548","name":"荔浦芋头流沙包","spec":"810G(6只*3包)","zone":"89","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980410905","long":"980410905","name":"吉士汀缤纷奶酪棒","spec":"吉士汀缤纷奶酪棒","zone":"44","cat":"","price":"59.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980411266","long":"980411266","name":"风干火腿奶酪卷","spec":"风干火腿奶酪卷","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980423842","long":"980423842","name":"KIRI 芝士冰淇淋","spec":"KIRI 芝士冰淇淋","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980425864","long":"980425864","name":"I.玫瑰风味拿铁 P","spec":"250ML*6","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980431218","long":"980431218","name":"MM 日式牛肉煎饺 Y4","spec":"1.648KG(48只)","zone":"89","cat":"","price":"59.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980431260","long":"980431260","name":"忠曜堂中式冰淇淋","spec":"忠曜堂中式冰淇淋","zone":"44","cat":"","price":"","days":"547","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980433426","long":"980433426","name":"低脂低GI 豆腐面 K4","spec":"310G*4+30G*4","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980438673","long":"980438673","name":"I.意大利 GELATO","spec":"三口味组合装","zone":"44","cat":"","price":"","days":"730","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980439023","long":"980439023","name":"榴芒一刻冰淇淋","spec":"猫山王冰淇淋装","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980441822","long":"980441822","name":"凯芮法棍酪酪","spec":"凯芮法棍酪酪","zone":"44","cat":"","price":"75.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980444515","long":"980444515","name":"香肠薯角拼盘","spec":"香肠薯角","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980449094","long":"980449094","name":"PEET'S 咖啡冰淇淋","spec":"咖啡冰淇淋*9","zone":"44","cat":"","price":"","days":"547","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980449242","long":"980449242","name":"培根芝士香肠卷","spec":"培根芝士香肠卷","zone":"44","cat":"","price":"79.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980451935","long":"980451935","name":"松鹤楼如意上素面","spec":"300GX6份","zone":"89","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980454679","long":"980454679","name":"梦龙甜筒9支装","spec":"梦龙脆皮甜筒","zone":"44","cat":"","price":"","days":"730","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980457079","long":"980457079","name":"利茶铺冰淇淋","spec":"抹茶冰淇淋","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980457282","long":"980457282","name":"优诺牛油果冰淇淋","spec":"优诺牛油果冰淇淋","zone":"44","cat":"","price":"","days":"457","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980462984","long":"980462984","name":"露怡慕斯黄油挞","spec":"露怡迷你慕斯挞","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980471368","long":"980471368","name":"MM 手作黑猪肉包 Y4","spec":"1.625KG","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980473665","long":"980473665","name":"芒果糯米饭","spec":"160G*4","zone":"89","cat":"","price":"49.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980475540","long":"980475540","name":"冷萃龙井 K4","spec":"8×335ML","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980479871","long":"980479871","name":"松露风味英式切达","spec":"松露风味英式切达","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980480685","long":"980480685","name":"西班牙奶酪组合","spec":"西班牙奶酪组合","zone":"44","cat":"","price":"79.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980483243","long":"980483243","name":"HPP 胡柚汁 K4","spec":"6X300ML","zone":"42","cat":"","price":"","days":"45","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980484802","long":"980484802","name":"鸡排松饼组合","spec":"泰森","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980485944","long":"980485944","name":"I.莫吉托饮料","spec":"2*1L","zone":"42","cat":"","price":"","days":"366","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980486434","long":"980486434","name":"圃美多韩式冷面","spec":"512G*2+390G*2","zone":"89","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980487502","long":"980487502","name":"M&M'S 冰淇淋8杯装","spec":"M&M'S 冰淇淋8杯装","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980487503","long":"980487503","name":"鳕鱼蟹味棒","spec":"鳕鱼蟹味棒","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980487504","long":"980487504","name":"帕斯雀牛肉 300G","spec":"帕斯雀牛肉 300G","zone":"44","cat":"","price":"59.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980488083","long":"980488083","name":"白玉红豆抹茶布丁","spec":"(120G+5G+15G)X8","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980488565","long":"980488565","name":"熟制真章鱼足","spec":"冷藏即食","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980491401","long":"980491401","name":"鱼极鳕鱼雪蟹柳","spec":"216GX3","zone":"89","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980491623","long":"980491623","name":"MM4.0 鲜牛奶馒头 P","spec":"1.44KG(30G*48)","zone":"89","cat":"","price":"39.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980493101","long":"980493101","name":"畅饮希腊酸奶 K4","spec":"8X215G","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980497671","long":"980497671","name":"凯芮甜心小酪","spec":"凯芮甜心小酪","zone":"44","cat":"","price":"79.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980498766","long":"980498766","name":"味噌什锦拌乌冬","spec":"味噌什锦拌乌冬","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980498900","long":"980498900","name":"大董老卤鸭货","spec":"大董老卤鸭货","zone":"44","cat":"","price":"","days":"46","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980498961","long":"980498961","name":"无花果奶酪球","spec":"750G","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980499039","long":"980499039","name":"毛肚黄喉双脆凉面","spec":"465G*4份","zone":"89","cat":"","price":"64.9","days":"45","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980500159","long":"980500159","name":"海盐黄皮青玉茶 K4","spec":"300MLX8","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980500166","long":"980500166","name":"橙色车达奶酪碎","spec":"淡味","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980500316","long":"980500316","name":"泡菜烤肉风味饭团","spec":"泡菜烤肉风味饭团","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980500358","long":"980500358","name":"蜂蜜炙烤火腿片","spec":"火腿片","zone":"44","cat":"","price":"35.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980503824","long":"980503824","name":"希腊酸奶雪糕","spec":"320G*3","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980503895","long":"980503895","name":"马苏里拉奶酪碎","spec":"907G","zone":"44","cat":"","price":"79.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980503931","long":"980503931","name":"薄荷巧克力拿铁 K4","spec":"6×250ML","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980504718","long":"980504718","name":"新希望味业辣椒酱","spec":"糟辣椒下饭酱","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980506840","long":"980506840","name":"酱香牛腱芯","spec":"300G","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980506849","long":"980506849","name":"泰式松阪肉","spec":"泰式松阪肉","zone":"44","cat":"","price":"39.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980507253","long":"980507253","name":"黑猪肉高汤小笼包","spec":"1.2KG(20只X2袋)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980507360","long":"980507360","name":"零乳糖牛奶 K4","spec":"8*260ML","zone":"42","cat":"","price":"","days":"19","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980507694","long":"980507694","name":"泰森奥尔良鸡翅中","spec":"泰森奥尔良鸡翅中","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980507923","long":"980507923","name":"笋烧鲜肥肠 960G","spec":"笋烧鲜肥肠","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980511158","long":"980511158","name":"黑椒牛肉纸皮烧卖","spec":"1.32KG(55GX24)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980512333","long":"980512333","name":"湾仔黑猪白菜饺","spec":"1.62KG(81只装)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980512364","long":"980512364","name":"咖啡牛奶 K4","spec":"8×290ML","zone":"42","cat":"","price":"","days":"60","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980515277","long":"980515277","name":"芝士培根烘蛋","spec":"芝士培根烘蛋","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980515329","long":"980515329","name":"百香果青瓜酸奶 K4","spec":"10*220G","zone":"42","cat":"","price":"","days":"25","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980515346","long":"980515346","name":"广酒手作虾饺皇","spec":"1.2KG(15只*2包)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980517265","long":"980517265","name":"醇臻 巧慕斯蛋糕","spec":"1×385G","zone":"44","cat":"","price":"","days":"184","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980518236","long":"980518236","name":"淡味黄油（条状）","spec":"227G*2","zone":"44","cat":"","price":"42.8","days":"","band":"","check":"","pre":"","off":""},{"no":"980518784","long":"980518784","name":"MM A2 鲜牛奶 K4","spec":"240ML*8","zone":"42","cat":"","price":"32.9","days":"15","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980519415","long":"980519415","name":"芒果草莓切片棒冰","spec":"800G","zone":"44","cat":"","price":"","days":"549","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980519473","long":"980519473","name":"风干熟成牛肉","spec":"风干熟成牛肉","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980520594","long":"980520594","name":"I.黑标火腿","spec":"1×1箱","zone":"44","cat":"","price":"3598","days":"","band":"","check":"","pre":"","off":""},{"no":"980520773","long":"980520773","name":"利提拉米苏蛋糕","spec":"6×70克","zone":"44","cat":"","price":"","days":"180","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980520891","long":"980520891","name":"青提羽衣甘蓝茶 K4","spec":"6×300ML","zone":"42","cat":"","price":"","days":"31","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980522048","long":"980522048","name":"FOB 双拼果味酸奶","spec":"135GX12","zone":"42","cat":"","price":"","days":"28","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980523748","long":"980523748","name":"法兰希迷你布里","spec":"单颗独立包装","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980525187","long":"980525187","name":"佳沃金枕榴莲果肉","spec":"DURIAN PULP","zone":"44","cat":"","price":"","days":"547","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980525306","long":"980525306","name":"蜜桃风味发酵乳 K4","spec":"8*300G","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980525353","long":"980525353","name":"酥皮腊汁肉夹馍","spec":"1×1.24KG(8个)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980526537","long":"980526537","name":"三文鱼惠灵顿","spec":"870G(290G*3)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980526574","long":"980526574","name":"雪融双层芝士蛋糕","spec":"650G*1","zone":"44","cat":"","price":"","days":"180","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980528003","long":"980528003","name":"六重菌菇全麦披萨","spec":"1.14KG(190G*6)","zone":"89","cat":"","price":"69.9","days":"271","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980529362","long":"980529362","name":"广酒粤式蒸点集","spec":"750G","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980530856","long":"980530856","name":"MM 手作鲜葱花卷 Y","spec":"1.8KG","zone":"89","cat":"89 预制菜\\亚洲面点\\火锅(40 冷冻亚洲面点)","price":"37.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980530915","long":"980530915","name":"双拼迷你披萨","spec":"540G","zone":"89","cat":"","price":"","days":"458","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980531052","long":"980531052","name":"圃美多迷你热狗棒","spec":"660G(55G*12)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980531095","long":"980531095","name":"法式焦糖布蕾蛋糕","spec":"600克（6个）","zone":"44","cat":"","price":"","days":"182","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980533204","long":"980533204","name":"马苏里拉奶酪条","spec":"400G","zone":"44","cat":"","price":"39.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980534512","long":"980534512","name":"芭乐香柚栀栀茶 K4","spec":"8*300G","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980535523","long":"980535523","name":"凯芮涂抹奶酪","spec":"432G*1","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980535527","long":"980535527","name":"低糖鲜炖燕窝礼盒","spec":"10×50G","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980536532","long":"980536532","name":"瀑布蟹肉蟹黄面","spec":"1.11KG(370G*3)","zone":"89","cat":"","price":"129.9","days":"122","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980537345","long":"980537345","name":"千喜鹤黑猪锅包肉","spec":"黑猪里脊锅包肉","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980537424","long":"980537424","name":"生牛乳柚子奶 K4","spec":"250MLX8","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980539287","long":"980539287","name":"牛肉汉堡排","spec":"汉堡排","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980539655","long":"980539655","name":"法式酥皮香肠卷","spec":"600G","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980540854","long":"980540854","name":"树番茄牛肉饵丝","spec":"1.95KG(650G*3)","zone":"89","cat":"","price":"54.9","days":"69","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980542358","long":"980542358","name":"CHOBANI 希腊酸奶","spec":"100G*6","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980543833","long":"980543833","name":"超级浆果混合汁 K4","spec":"300ML*6","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980543873","long":"980543873","name":"生普洱茶 K4","spec":"335ML*8","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980544691","long":"980544691","name":"羊肚菌羊排面","spec":"1.41KG(470G*3)","zone":"89","cat":"","price":"","days":"91","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"980544799","long":"980544799","name":"馥烹烟熏三文鱼","spec":"馥烹烟熏三文鱼","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980544827","long":"980544827","name":"牙签羔羊肉","spec":"孜然牙签羔羊肉","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"980550952","long":"980550952","name":"黑金双享流沙包","spec":"720G(8只*2袋)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980551880","long":"980551880","name":"NFC 甜椒汁 K4","spec":"6X240ML","zone":"42","cat":"","price":"","days":"35","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980555397","long":"980555397","name":"CP 炭烤鲜鸡腿","spec":"1KG/袋","zone":"44","cat":"","price":"55.9","days":"60","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980555862","long":"980555862","name":"杏仁豆腐牛乳布丁","spec":"(120G+10G)*8","zone":"42","cat":"","price":"","days":"21","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"980556042","long":"980556042","name":"韩式烤肉炸酱面","spec":"1.74KG(4份)","zone":"89","cat":"","price":"73.9","days":"75","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"980558732","long":"980558732","name":"GU 芝士蛋糕","spec":"84.5G*4","zone":"44","cat":"","price":"","days":"549","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980559149","long":"980559149","name":"烧烤双味海鲜福袋","spec":"720G(12个*2袋)","zone":"89","cat":"","price":"69.9","days":"547","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980560138","long":"980560138","name":"脆肉鲩酸菜鱼","spec":"2.232KG(2份)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"980560319","long":"980560319","name":"墨西哥式奶酪切片","spec":"口感微辣奶香浓郁","zone":"44","cat":"","price":"89.9","days":"","band":"","check":"","pre":"","off":""},{"no":"980561449","long":"980561449","name":"越式牛三宝河粉","spec":"2.6598KG(3份)","zone":"89","cat":"","price":"83.9","days":"116","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"981011331","long":"981011331","name":"MM 法式火腿片","spec":"160G×3","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"981022387","long":"981022387","name":"湾仔玉米肉水饺 W","spec":"1.98KG(99只)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"981032688","long":"981032688","name":"美兰原味黄油","spec":"500G","zone":"44","cat":"","price":"39.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981032739","long":"981032739","name":"美兰咸味黄油","spec":"500G","zone":"44","cat":"","price":"46.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981036817","long":"981036817","name":"NFC 石榴汁 K4","spec":"1.5L","zone":"42","cat":"","price":"","days":"30","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"981043371","long":"981043371","name":"沙拉鸡胸肉","spec":"10X100G","zone":"44","cat":"","price":"69.9","days":"60","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"981056213","long":"981056213","name":"法兰希布里奶酪","spec":"布里奶酪","zone":"44","cat":"","price":"79.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981058584","long":"981058584","name":"老北京风味酱牛腱","spec":"430G","zone":"44","cat":"","price":"79.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981059242","long":"981059242","name":"SWIFT 芝士牛肉卷","spec":"280G×3","zone":"89","cat":"","price":"65.9","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"981062345","long":"981062345","name":"高达&伊顿奶酪片","spec":"2X200G","zone":"44","cat":"","price":"45.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981063868","long":"981063868","name":"高达&伊顿奶酪块","spec":"200g*24","zone":"44","cat":"","price":"85.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981066567","long":"981066567","name":"荷美尔午餐肉肠","spec":"3X300G","zone":"44","cat":"","price":"49.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981066679","long":"981066679","name":"MM 台式香肠 P","spec":"4×250克","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"981067765","long":"981067765","name":"三种口味萨拉米","spec":"经典意大利风味","zone":"44","cat":"","price":"54.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981069897","long":"981069897","name":"I.伊比利亚火腿 K","spec":"160g","zone":"44","cat":"44 调味蛋白质\\西式美食(10 冷藏调理蛋白质)","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981076551","long":"981076551","name":"新奇士葡萄汁 P","spec":"2X1.6L","zone":"42","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"981078143","long":"981078143","name":"100%椰子水 P","spec":"8X414ML","zone":"42","cat":"","price":"","days":"45","band":"30-89天","check":"1次/周","pre":"10","off":"8"},{"no":"981078399","long":"981078399","name":"冷熏三文鱼片","spec":"荷兰百年品牌馥烹","zone":"44","cat":"","price":"","days":"28","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"981079379","long":"981079379","name":"厚切炸猪排 K4","spec":"肉香浓郁汁水满满","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"981079392","long":"981079392","name":"I.高达奶酪 K","spec":"400G","zone":"44","cat":"","price":"59.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981092504","long":"981092504","name":"芝司乐车达芝士片","spec":"768G","zone":"44","cat":"","price":"74.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981102330","long":"981102330","name":"MM 番茄肉酱意面 P","spec":"1.128KG","zone":"89","cat":"","price":"39.9","days":"120","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"981102394","long":"981102394","name":"优诺鲜牛乳 P","spec":"2X1.89L","zone":"42","cat":"","price":"","days":"15","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"981106068","long":"981106068","name":"MM 芝士培根意面 K4","spec":"1.1248KG(4份)","zone":"89","cat":"","price":"47.9","days":"120","band":"90天-1年以下","check":"1次/2周","pre":"30","off":"15"},{"no":"981109160","long":"981109160","name":"I.SAPUTO 干酪条","spec":"1.36KG","zone":"44","cat":"","price":"119.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981109174","long":"981109174","name":"美兰喷射稀奶油","spec":"400G*2","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"981109202","long":"981109202","name":"哈根达斯八杯装","spec":"81G*8","zone":"44","cat":"","price":"","days":"427","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"981111365","long":"981111365","name":"菲力奶油奶酪 K4","spec":"澳洲第一芝士品牌","zone":"44","cat":"","price":"69.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981112268","long":"981112268","name":"洛凯意马苏里拉 P","spec":"意式奶酪","zone":"44","cat":"","price":"","days":"","band":"","check":"","pre":"","off":""},{"no":"981114639","long":"981114639","name":"冶春五丁包","spec":"1.125KG(15只)","zone":"89","cat":"","price":"","days":"365","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"981114970","long":"981114970","name":"冠益乳免疫力瓶 P","spec":"24X100G","zone":"42","cat":"","price":"","days":"21","band":"15-29天","check":"1次/天","pre":"无","off":"5"},{"no":"981115094","long":"981115094","name":"苹果鸡肉香肠","spec":"AIDELLS","zone":"44","cat":"","price":"59.9","days":"","band":"","check":"","pre":"","off":""},{"no":"981116820","long":"981116820","name":"蟹味棒 P","spec":"1KG","zone":"89","cat":"","price":"65.9","days":"731","band":"1年（含）以上","check":"1次/月","pre":"90","off":"30"},{"no":"981117024","long":"981117024","name":"伊利乳酸菌饮料 P","spec":"24X100ML","zone":"42","cat":"","price":"","days":"35","band":"30-89天","check":"1次/周","pre":"10","off":"8"}];
+var ALIAS = {"鲜牛奶":["980064274","980329321","980349521","980491623","980518784"],"牛奶":["980064274","980329321","980349521","980491623","980507360","980512364","980518784"],"酸奶":["980091887","980343600","980493101","980503824","980515329","980522048","980542358"],"发酵乳":["980065029","980369199","980525306"],"希腊酸奶":["980493101","980503824","980542358"],"牛乳":["980224109","980293096","980341575","980537424","980555862","981102394"],"冰淇淋":["602832","980231655","980369547","980423842","980431260","980439023","980449094","980457079","980457282","980487502"],"奶酪":["980052567","980052818","980233494","980245326","980355977","980358191","980410905","980411266","980480685","980498961","980500166","980503895","980533204","980535523","980560319","981056213","981062345","981063868","981079392","981111365"],"芝士":["980224109","980332337","980372496","980423842","980449242","980515277","980526574","980558732","981059242","981092504","981106068"],"马苏里拉":["980503895","980533204","981112268"],"黄油":["980323165","980462984","980518236","981032688","981032739"],"奶油":["980058545","980404422","981109174","981111365"],"蛋糕":["980224109","980392418","980517265","980520773","980526574","980531095","980558732"],"布丁":["980341575","980488083","980555862"],"火腿":["980332337","980391508","980411266","980500358","980520594","981011331","981069897"],"香肠":["980285259","980444515","980449242","980539655","981066679","981115094"],"培根":["980373334","980449242","980515277","981106068"],"牛肉":["980299025","980330215","980368873","980390219","980431218","980487504","980511158","980519473","980539287","980540854","981059242"],"黑猪":["980264087","980341646","980380495","980400840","980401887","980471368","980507253","980512333","980537345"],"三文鱼":["980404422","980526537","980544799","981078399"],"鳕鱼":["980230364","980372496","980487503","980491401"],"豆腐":["605304","605311","980433426","980555862"],"榴莲":["980253513","980396491","980525187"],"泡菜":["79255","980383515","980500316"],"披萨":["980396491","980528003","980530915"],"果汁":["424528","980016969","980078378","980239279","980268827","980483243","980543833","980551880","981036817","981076551"],"汁":["424528","980016969","980078378","980239279","980268827","980483243","980543833","980551880","981036817","981076551"],"饮料":["424528","980485944","981117024"]};
+
+var HINT = {"980491623":"这是面点/烘焙，不是鲜奶"};
+
+// ================= 基础工具 =================
+function $(id){return document.getElementById(id)}
+function pad2(n){return n<10?"0"+n:""+n}
+function norm(s){
+  return String(s||"")
+    .replace(/[\uFF01-\uFF5E]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0)})
+    .replace(/[\u3000\s]+/g,"")
+    .replace(/[，。！？、；：“”‘’（）《》【】…—～·]/g,"")
+    .toLowerCase();
+}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function addDays(d,n){var x=new Date(d.getTime());x.setDate(x.getDate()+n);return x}
+function daysBetween(a,b){var ms=new Date(b.getFullYear(),b.getMonth(),b.getDate())-new Date(a.getFullYear(),a.getMonth(),a.getDate());return Math.round(ms/86400000)}
+function fmt(d){return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())}
+function today(){var n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())}
+
+// ================= 商品索引 =================
+var BYNO={}, BYLONG={};
+DATA.forEach(function(x){BYNO[x.no]=x;if(x.long)BYLONG[String(x.long)]=x;});
+
+function findGoods(q){
+  var out=[],i;
+  var m=q.match(/\d{5,12}/g);
+  if(m){
+    for(i=0;i<m.length;i++){
+      var k=m[i];
+      if(BYNO[k]){out.push(BYNO[k]);continue;}
+      if(BYLONG[k]){out.push(BYLONG[k]);continue;}
+      // 长编码去掉前两位 64/98 再试
+      var k2=k.replace(/^(64|98)/,"");
+      if(BYNO[k2]) out.push(BYNO[k2]);
+    }
+    if(out.length) return out;
+  }
+  var keys=Object.keys(ALIAS);
+  for(i=0;i<keys.length;i++){
+    if(q.indexOf(norm(keys[i]))>=0){
+      for(var j=0;j<ALIAS[keys[i]].length;j++){
+        var g=BYNO[ALIAS[keys[i]][j]];
+        if(g&&out.indexOf(g)<0) out.push(g);
+      }
+    }
+  }
+  if(out.length) return out;
+  var qq=q.replace(/^(查|找|看看|有没有|这个|那个)+/,"");
+  if(qq.length>=2){
+    for(i=0;i<DATA.length;i++){
+      if(norm(DATA[i].name).indexOf(qq)>=0) out.push(DATA[i]);
+    }
+  }
+  return out;
+}
+
+// ================= 档位 =================
+function bandOf(d){
+  if(d<=2) return {band:"1-2天",check:"1次/天",pre:null,off:0};
+  if(d<=5) return {band:"3-5天",check:"1次/天",pre:null,off:1};
+  if(d<=10) return {band:"6-10天",check:"1次/天",pre:null,off:2};
+  if(d<=14) return {band:"11-14天",check:"1次/天",pre:null,off:3};
+  if(d<=29) return {band:"15-29天",check:"1次/天",pre:null,off:5};
+  if(d<=89) return {band:"30-89天",check:"1次/周",pre:10,off:8};
+  if(d<=364) return {band:"90天-1年以下",check:"1次/2周",pre:30,off:15};
+  return {band:"1年（含）以上",check:"1次/月",pre:90,off:30};
+}
+
+// ================= 抽取 =================
+function extractDays(q){
+  var s=q.replace(/\d{4}年\d{1,2}月\d{1,2}[日号]?/g,"")
+           .replace(/\d{1,2}月\d{1,2}[日号]?/g,"")
+           .replace(/\d{1,2}[\/\.\-]\d{1,2}/g,"");
+  var m=s.match(/(\d+(?:\.\d+)?)\s*(天|日|个月|月|年)/);
+  if(!m) return null;
+  var n=parseFloat(m[1]);
+  if(m[2]==="年") return Math.round(n*365);
+  if(m[2]==="个月"||m[2]==="月") return Math.round(n*30);
+  return Math.round(n);
+}
+function extractDate(q){
+  var t=today();
+  if(/今天/.test(q)) return t;
+  if(/昨天/.test(q)) return addDays(t,-1);
+  if(/前天/.test(q)) return addDays(t,-2);
+  if(/明天/.test(q)) return addDays(t,1);
+  var m=q.match(/(?:(\d{4})[年\/\-\.])?(\d{1,2})[月\/\-\.](\d{1,2})[日号]?/);
+  if(!m) return null;
+  var y=m[1]?parseInt(m[1],10):t.getFullYear();
+  var mo=parseInt(m[2],10), d=parseInt(m[3],10);
+  if(mo<1||mo>12||d<1||d>31) return null;
+  var dt=new Date(y,mo-1,d);
+  if(dt.getMonth()!==mo-1) return null;
+  return dt;
+}
+
+// ================= 公式 =================
+function calcDates(days,start){
+  var b=bandOf(days);
+  var exp=addDays(start,days-1);
+  var offDay=addDays(exp,-b.off);
+  var preDay=(b.pre===null)?null:addDays(exp,-b.pre);
+  var t=today(), left=daysBetween(t,offDay);
+  var s="";
+  s+="生产/到货：" + fmt(start) + "\n";
+  s+="保质期：" + days + " 天（" + b.band + " 档，检查 " + b.check + "）\n";
+  s+="到期日：" + fmt(exp) + "（= " + fmt(start) + " + " + days + " − 1）\n";
+  if(preDay) s+="转临期日：" + fmt(preDay) + "（到期前 " + b.pre + " 天）\n";
+  else s+="转临期日：" + "无。1-29 天不设临期，直接按下架日处理\n";
+  s+="下架日：" + fmt(offDay) + "（" + (b.off===0?"届满当天":"到期前 "+b.off+" 天") + "）\n";
+  s+="\n距下架：" + (left<0 ? ("已超 "+(-left)+" 天，按报损流程处理") : (left+" 天"));
+  return s;
+}
+
+// ================= 常用问答 =================
+var FAQ=[
+{m:["你能干什么","能做什么","会什么","能帮我什么","介绍自己"],a:"我管四件事：\n1. 查商品——商品号、名字、规格、分区、售价、保质期\n2. 算日子——报「日期 + 保质期」，出到期日、转临期日、下架日\n3. 讲规则——8 个保质期档位、检查频率、打折阶梯、冰淇淋温度线\n4. 讲边界——我不能答的，直接告诉你该找谁\n\n我不会猜。表里没录的就说没录。",src:"能力说明"},
+{m:["分几档","几个档","一共有几档","档位有哪些","8档","八档"],a:"按保质期分 8 档：\n1-2 天｜3-5 天｜6-10 天｜11-14 天｜15-29 天\n30-89 天｜90 天-1 年以下｜1 年（含）以上\n\n报个具体天数，我把这档的检查频率、转临期、下架提前天数算给你。",src:"临保规则 · 一"},
+{m:["没有临期","不贴临期","为什么没临期","临期标"],a:"保质期 1-29 天没有「临期商品」这个概念，不贴临期标，直接按下架日处理。\n只有 30 天及以上才有「先转临期做促销、到下架日下架」这一步。\n所以「保质期 2 天要提前几天贴临期标」这个问题本身不成立。",src:"临保规则 · 二"},
+{m:["货架期"],a:"货架期不是保质期。\n货架期（比如 80 天）是销售陈列期；保质期天数一律以商品主数据表里录入的「保质期(天)」为准。\n两个数不一致时不要自己挑，找主管确认。",src:"临保规则 · 常见误答"},
+{m:["日期怎么算","公式","怎么计算","到期日怎么"],a:"到期日 = 生产（或到货）日 + 保质期天数 − 1\n转临期日 = 到期日 − 临保提前天数\n下架日 = 到期日 − 下架提前天数\n\n例：11 月 1 日到货、保质期 30 天 → 到期 11/30，转临期 11/20，下架 11/22。",src:"临保规则 · 三"},
+{m:["冰淇淋","冰柜","几度","多少度","温度","-22","零下","断链"],a:"冰淇淋储存温度必须 ≤ -22℃。\n普通冷冻品是 -18℃，两条线别混。\n\n库温高于 -22℃：立即报主管，由主管判断是否断链、是否隔离。\n温度异常过的冰淇淋：不要自行放回货架，不要自行打折。\n\n现在显示多少度？报个数，我帮你判断超没超。",src:"临保规则 · 冰淇淋温度硬线"},
+{m:["冷藏还是冷冻","放冷藏","放冷冻","哪个温区","温区","冻还是冷藏"],a:"分区号推不出温区。\n44 分区里冷藏调理品和冷冻品都有（泡菜和冰淇淋都在 44）。\n\n先看包装标示，拿不准问主管。",src:"临保规则 · 分区检查要点"},
+{m:["42区","42 区","42库","42检查","42查什么"],a:"42 冷藏库（0-4℃）：每天检查。\n重点：报损区商品日期、临期商品标识、温度记录。\n冷藏品查日期要查到最里面一层，别只看前排。",src:"临保规则 · 四"},
+{m:["44区","44 区","44库","44检查","44查什么"],a:"44 冷冻库（-18℃）。\n重点：冰淇淋与生熟制品分开存放，检查包装完整、无断链痕迹。\n注意 44 里也有冷藏品，不能由分区推温区。",src:"临保规则 · 四"},
+{m:["89区","89 区","89库","89检查","89查什么"],a:"89 冷冻库（-18℃）。\n重点：库存周转、临期标识，和 44 一样要查包装完整、无断链。",src:"临保规则 · 四"},
+{m:["打折","几折","折扣","促销","降价","阶梯"],a:"临期打折阶梯：\n剩 3 天 —— 8 折\n剩 2 天 —— 5 折\n剩 1 天 —— 买一送一 / 捆绑\n当天到期 —— 报损，不卖\n\n规矩：别一上来就打 5 折，先按 8 折试，卖不动再下一档。冷冻品除非断链或包装破损，一般不提前打折。报损必须走系统流程。",src:"品类规则 · 二"},
+{m:["开封","开盖","开了以后","打开后","喝不完"],a:"开封后保存：\n巴氏鲜奶 —— 冷藏，24 小时内喝完\n低温酸奶 —— 当天吃完\n奶酪 —— 密封冷藏，3-5 天内用完，表面发霉整块弃用\n冷冻面点 —— 密封冷冻，尽快用完，反复解冻会塌\n冰淇淋 —— 密封冷冻，回温再冻会有冰碴，不建议",src:"品类规则 · 三"},
+{m:["巴氏鲜奶","鲜牛奶","鲜奶"],a:"巴氏鲜奶：温区 2-6℃（42 冷藏），建议剩 3 天预警，处理动作 8 折。\n开封后冷藏，24 小时内喝完。\n具体某款多少天保质期，报商品名或商品号，我去查表。",src:"品类规则 · 一"},
+{m:["常温奶"],a:"常温奶：常温存放，不用提前处理，正常卖。",src:"品类规则 · 一"},
+{m:["低温酸奶","酸奶"],a:"低温酸奶：温区 2-6℃（42 冷藏），建议剩 7 天预警，处理动作 8 折。\n开封后当天吃完。\n具体哪款几天，报商品号我查表。",src:"品类规则 · 一"},
+{m:["冷冻面点","面点","包子","馒头","水饺","馄饨"],a:"冷冻面点：温区 -18℃，建议剩 30 天预警，处理动作买赠。\n开封后密封冷冻，尽快用完，反复解冻会塌。",src:"品类规则 · 一"},
+{m:["预制菜"],a:"预制菜：温区 -18℃，建议剩 45 天预警，处理动作组合销售。",src:"品类规则 · 一"},
+{m:["奶酪","芝士"],a:"奶酪（短保冷藏）：温区 2-6℃（42 冷藏），建议剩 1/4 保质期预警。\n先 8 折，剩 3 天内改买赠。\n开封后密封冷藏，3-5 天内用完，表面发霉整块弃用。",src:"品类规则 · 一"},
+{m:["火腿"],a:"火腿（短保冷藏）：温区 2-6℃（42 冷藏），建议剩 1/4 保质期预警。\n先 8 折，剩 3 天内改买赠。",src:"品类规则 · 一"},
+{m:["鼓包","结霜","软塌","包装破","断链痕迹"],a:"冷冻品最怕断链。发现包装鼓包、结霜异常、软塌：\n先隔离 → 报主管 → 不要放回货架 → 不要自行打折。",src:"品类规则 · 四"},
+{m:["临期商品","陈列","价签","标识"],a:"临期商品必须有标识，并且和正常商品分开陈列或做专门价签。\n报损区商品日期每天要过一遍，这是 FSHA 检查重点。",src:"品类规则 · 四"},
+{m:["还能卖吗","能卖吗","能不能卖"],a:"先看表里保质期，再算下架日，才能答能卖到哪天。\n告诉我两件事：① 商品名或商品号 ② 生产/到货日期。\n缺日期我不估算。",src:"话术 · 常见问法"},
+{m:["还有几天过期","几天过期","多久过期","什么时候过期"],a:"缺生产/到货日期时，我不估算。\n告诉我：商品名或商品号 + 生产/到货日期，我给你算到期日和下架日。",src:"话术 · 常见问法"},
+{m:["还有几天","剩几天","够不够"],a:"这个得算：给我商品和生产/到货日期。\n如果说的是「这批货」，先确认是哪一款——同一个叫法店里常常有好几款。",src:"话术 · 常见问法"},
+{m:["今天该查","今天查什么","查哪些"],a:"按分区给频率：\n42 冷藏 —— 每天，重点报损区日期、临期标识、温度记录\n44 冷冻 —— 冰淇淋与生熟分开、包装完整、无断链\n89 冷冻 —— 库存周转、临期标识\n\n1-29 天的商品都是每天查；30-89 天每周 1 次；90 天以上每两周 1 次；1 年以上每月 1 次。",src:"临保规则 · 四"},
+{m:["成本","进价","毛利","利润","多少钱进的"],a:"这个不在我能查的范围里。表里只有售价，没有成本价、进价和毛利。",src:"话术 · 不能答"},
+{m:["供应商","厂家","联系方式","合同","谁供货"],a:"这个不在我能查的范围里。供应商、联系方式、合同条款我都没有。",src:"话术 · 不能答"},
+{m:["谁干活","最慢","谁最","评价一下","谁不好","偷懒","考勤","工资","薪资","排班"],a:"这个不在我能查的范围里。我不评价人，也不碰考勤、薪资、排班的事。",src:"话术 · 不能答"},
+{m:["报损单","批一下","审批","打个折吧","给我批"],a:"我只能给判断，审批要主管。\n报损必须走系统流程，不在货架上直接扔。",src:"话术 · 不能答"},
+{m:["盘库存","盘点","盘一下库存","盘货"],a:"我只能查主数据和规则，替代不了实盘。盘点还得人去货架前过一遍。",src:"话术 · 边界"},
+{m:["退款","赔偿","补偿","退换"],a:"涉及退款、赔偿，我不承诺金额和时限。\n建议打门店电话 021-68762818，或者到店找服务台，他们会处理。",src:"话术 · 转人"},
+{m:["投诉","变质","异物","吃坏","食品安全"],a:"食品安全投诉要转人：门店服务台或值班主管，电话 021-68762818。\n我不做责任判断，也不承诺补偿。",src:"话术 · 转人"},
+{m:["会员卡","顾客信息","订单","手机号"],a:"顾客个人信息、会员卡余额、订单明细，这个不在我能查的范围里。",src:"话术 · 不能答"},
+{m:["保质期多久","一般放多久","这类一般","统一天数"],a:"品类没有统一天数，每家每款都不一样。\n报个商品名或商品号，我去查表；表里没录的，按包装标示或问主管。",src:"品类规则 · 说明"},
+{m:["写个促销","文案","广告语"],a:"可以写，但这不是数据查询。活动价得主管定，我不能拿表里的真实价格编活动。",src:"话术 · 常见问法"},
+{m:["准不准","靠谱吗","会不会编","数据哪来的"],a:"我答商品，只从 242 条主数据里查，查不到就说没有。\n我答规则，只从临保规则、品类规则、话术边界三份文件里出。\n我不生成没见过的数字——这是和聊天机器人的区别。",src:"说明"},
+{m:["公司政策","政策","规定","制度","总部文件"],a:"公司政策、制度文件我没有，也不猜。\n店里的操作口径以主管和门店文件为准。",src:"话术 · 不能答"},
+{m:["表里没有","查不到","没录","空着","没填","未录入","0天"],a:"表里没有的，我不会猜。\n空着的格子意思是「未录入」，不是「无限期」，按包装标示或问主管。\n0 天、负数、没填，都当未录入处理。",src:"话术 · 边界"},
+{m:["以哪个为准","两个分区","分区不一样","都有","重复记录","两行"],a:"一条商品在主数据里只挂一个分区，以表里记的那条为准。\n如果真出现两行同一个商品、分区不同，两行都列出来，然后问主管确认，别自己二选一。",src:"话术 · 边界"},
+{m:["还有哪些","有什么商品","列一下","全部商品","清单"],a:"按分区看就说「列出 42 区商品」「44 区有哪些」。\n按品类看就说「冰淇淋有哪些」「牛奶有哪些」。\n报商品号也行，我直接查那一条。",src:"商品主数据"}
+];
+
+function matchFAQ(q){
+  var best=null, bs=0;
+  for(var i=0;i<FAQ.length;i++){
+    var f=FAQ[i], sc=0;
+    for(var j=0;j<f.m.length;j++){
+      if(q.indexOf(norm(f.m[j]))>=0) sc+=f.m[j].length*2;
+    }
+    if(sc>bs){bs=sc;best=f;}
+  }
+  return bs>=4?best:null;
+}
+
+// ================= 回答 =================
+var RULEWORD=/(还能卖|几天|多久|下架|临期|保质期|温度|几度|多少度|冷藏|冷冻|怎么|为什么|能不能|可以吗|打折|几折|开封|报损|成本|进价|毛利|供应商|投诉|退款|库存|盘|分几档|档位|预警)/;
+
+function goodsList(list,limit){
+  var s="",n=Math.min(list.length,limit||12);
+  for(var i=0;i<n;i++){
+    var x=list[i];
+    s+="\n· " + x.name + (x.spec?("（"+x.spec+"）"):"")
+      +"\n  号 " + x.no + "｜分区 " + (x.zone||"—")
+      +"｜保质期 " + (x.days?(x.days+" 天"):"未录")
+      +"｜售价 " + (x.price?("￥"+x.price):"—");
+  }
+  if(list.length>n) s+="\n……还有 " + (list.length-n) + " 个，说细一点我再筛";
+  return s;
+}
+
+function zoneAnswer(z, onlyCount){
+  var list=DATA.filter(function(x){return x.zone===z;});
+  var done=list.filter(function(x){return x.days;});
+  var s=z+" 分区：一共 "+list.length+" 个商品，已录保质期 "+done.length+" 个，未录 "+(list.length-done.length)+" 个。";
+  if(onlyCount) return {t:s+"\n\n要清单就说「列出 "+z+" 区商品」。",src:"商品主数据 · 实时统计"};
+  var sl=list.slice().sort(function(a,b){return (a.days||99999)-(b.days||99999);});
+  s+="\n（按保质期从短到长）";
+  s+=goodsList(sl,15);
+  return {t:s,src:"商品主数据 · 按保质期升序"};
+}
+
+function answer(raw){
+  var q=norm(raw);
+  if(!q) return {t:"说点什么吧。",src:""};
+
+  var days=extractDays(q);
+  var day=extractDate(q);
+
+  // 0a. 分区盘点
+  var zm=q.match(/(42|44|89)(?:区|库|分区)/);
+  if(zm && /(多少|几个|哪些|列出|清单|录了|统计)/.test(q)){
+    return zoneAnswer(zm[1], /(多少|几个|录了|统计)/.test(q) && !/(哪些|列出|清单)/.test(q));
+  }
+
+  // 0b. 两个天数比档位
+  var cmp=q.match(/(\d+)\s*天[^。]*?(\d+)\s*天/);
+  if(cmp && /(一样|同档|相同|是不是)/.test(q)){
+    var A=parseInt(cmp[1],10), B=parseInt(cmp[2],10), ba=bandOf(A), bb=bandOf(B);
+    return {t:(ba.band===bb.band ? (A+" 天和 "+B+" 天都归「"+ba.band+"」档，规则完全一样。") : (A+" 天归「"+ba.band+"」档，"+B+" 天归「"+bb.band+"」档，不一样。")),src:"临保规则 · 档位边界"};
+  }
+
+  // 0c. 0 天 / 空值
+  if(days!==null && days<1){
+    return {t:"0 天、或者空着，不代表永远不过期。\n空的是「未录入」，按包装标示或问主管。\n工具不把空值当无限期。",src:"话术 · 边界"};
+  }
+
+  // 1. 日期 + 天数 → 直接算
+  if(days!==null && day){
+    return {t:calcDates(days,day),src:"日期算法 · 到期日=生产日+保质期−1"};
+  }
+
+  // 2. 温度 / 断链
+  if(/温度|几度|多少度|零下|度c|℃|-22|-18|断链/.test(q)){
+    var isIce=/冰淇淋|冰柜|雪糕/.test(q);
+    var tm=q.match(/-(\d+)/), extra="";
+    if(tm){
+      var deg=-parseInt(tm[1],10);
+      if(deg!==-22 && deg!==-18 && isIce){
+        extra=(deg>-22)
+          ? ("\n\n你报的是 "+deg+"℃，高于 -22℃，已经超标——立即报主管判断是否断链，货先隔离，不要自行放回货架，不要自行打折。")
+          : ("\n\n"+deg+"℃ 在 -22℃ 线以下，正常。");
+      }else if(deg!==-22 && deg!==-18 && deg>-18){
+        extra="\n\n"+deg+"℃ 高于普通冷冻 -18℃ 线，报主管。如果是冰淇淋，标准是 -22℃，更严。";
+      }
+    }
+    var base = isIce
+      ? (extra
+          ? "冰淇淋储存温度必须 ≤ -22℃（普通冷冻 -18℃，两条线别混）。"
+          : "冰淇淋储存温度必须 ≤ -22℃。\n普通冷冻品是 -18℃，两条线别混。\n\n库温高于 -22℃ 要立即报主管，由主管判断是否断链、是否隔离。\n温度异常过的冰淇淋：不要自行放回货架，不要自行打折。")
+      : "温度只有两条线：\n普通冷冻品 -18℃\n冰淇淋 -22℃（更严）\n\n报一下现在几度、是哪个柜，我帮你判断。";
+    return {t:base+extra,src:"临保规则 · 冰淇淋温度硬线"};
+  }
+
+  // 2b. 问温区 → 不要给商品列表
+  if(/(冷藏还是冷冻|放冷藏|放冷冻|哪个温区|哪个库|温区)/.test(q)){
+    var fz=matchFAQ(q);
+    if(fz) return {t:fz.a,src:fz.src};
+  }
+
+  // 3. 纯商品号
+  var gm=q.match(/\d{5,12}/);
+  if(gm){
+    var g=findGoods(q);
+    if(g.length) return goodsAnswer(g,q,days,day);
+    return {t:"表里没有这个商品号。我不编，你核对一下号码，或者报商品名。",src:"商品主数据"};
+  }
+
+  // 4. 商品名
+  var goods=findGoods(q);
+  if(goods.length) return goodsAnswer(goods,q,days,day);
+
+  // 5. 只给了天数 → 档位（若问「有哪些」先列商品）
+  if(days!==null){
+    if(/(哪些|有哪|列出|清单|商品)/.test(q)){
+      var same=DATA.filter(function(x){return parseInt(x.days,10)===days;});
+      if(same.length){
+        return {t:"保质期正好 "+days+" 天的有 "+same.length+" 个："+goodsList(same,15)+"\n\n"+bandText(days),src:"商品主数据 + 临保规则"};
+      }
+    }
+    return {t:bandText(days),src:"临保规则 · 一"};
+  }
+
+  // 6. 规则问答
+  var hit=matchFAQ(q);
+  if(hit) return {t:hit.a,src:hit.src};
+
+  // 7. 兜底
+  return {t:"这个我没把握，不乱答。\n我只管鲜食冻品的商品信息、临保规则、品类常识和话术口径。超出范围的，建议问主管。\n\n你可以换个说法，比如报个商品号、报「日期 + 保质期」，或者问档位规则。",src:""};
+}
+
+function bandText(d){
+  var b=bandOf(d);
+  var s="保质期 " + d + " 天，归「" + b.band + "」档：\n";
+  s+="检查频率：" + b.check + "\n";
+  s+="转临期：" + (b.pre===null?"无（1-29 天不设临期，届满当天直接处理）":("到期前 " + b.pre + " 天")) + "\n";
+  s+="下架：" + (b.off===0?"届满当天":("到期前 " + b.off + " 天"));
+  s+="\n\n报一个生产/到货日期，我把具体日子算给你。";
+  return s;
+}
+
+function goodsAnswer(list,q,days,day){
+  if(list.length===1 && day && list[0].days){
+    var d0=parseInt(list[0].days,10);
+    return {t:"· "+list[0].name+"（号 "+list[0].no+"，保质期 "+list[0].days+" 天）\n\n"+calcDates(d0,day),src:"商品主数据 + 日期算法"};
+  }
+  if(days!==null && list.length===1){
+    return {t:"查到一款：" + list[0].name + "\n保质期 " + list[0].days + " 天。\n\n" + bandText(days),src:"商品主数据 + 临保规则"};
+  }
+  var s="";
+  if(list.length===1){
+    var x=list[0];
+    s+="查到 1 个：\n· " + x.name + (x.spec?("（"+x.spec+"）"):"") + "\n";
+    s+="商品号 " + x.no + (x.long&&x.long!==x.no?("（长编码 "+x.long+"）"):"") + "\n";
+    s+="分区 " + (x.zone||"—") + "｜售价 " + (x.price?("￥"+x.price):"—") + "\n";
+    if(x.days){
+      var b=bandOf(parseInt(x.days,10));
+      s+="保质期 " + x.days + " 天（" + (x.band||b.band) + " 档，检查 " + (x.check||b.check) + "）\n";
+      s+="转临期 " + (b.pre===null?"无":("到期前 "+b.pre+" 天")) + "｜下架 " + (b.off===0?"届满当天":("到期前 "+b.off+" 天"));
+      s+="\n\n直接说一个生产/到货日期（比如 11月1日），我把日子算给你。";
+    }else{
+      s+="保质期：表里未录。\n按包装标示或问主管，工具不猜天数。";
+    }
+    return {t:s,src:"商品主数据"};
+  }
+  s="找到 " + list.length + " 个，说具体一点我可以再筛：";
+  s+=goodsList(list,10);
+  if(list.length>1) s+="\n\n报商品号，或者补一两个特征（品牌、规格、口味）。";
+  return {t:s,src:"商品主数据"};
+}
+
+// ================= 界面 =================
+var msgs=$("msgs"), quick=$("quick");
+
+function push(role,obj){
+  var d=document.createElement("div");
+  d.className="msg "+(role==="me"?"me":"bot");
+  var b=document.createElement("div");
+  b.className="bub";
+  b.textContent=obj.t||"";
+  if(obj.src){
+    var sp=document.createElement("span");
+    sp.className="src";
+    sp.textContent="依据：" + obj.src;
+    b.appendChild(sp);
+  }
+  d.appendChild(b);
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function ask(text){
+  if(!text||!text.trim()) return;
+  push("me",{t:text});
+  $("in").value="";
+  setTimeout(function(){ push("bot",answer(text)); },90);
+}
+
+var QUICK=["保质期45天什么时候下架","冰淇淋柜-20℃能卖吗","分几档","42区查什么","报损单能批吗","你能干什么"];
+QUICK.forEach(function(q){
+  var b=document.createElement("button");
+  b.className="qb";
+  b.type="button";
+  b.textContent=q;
+  b.onclick=function(){ask(q)};
+  quick.appendChild(b);
+});
+
+$("go").onclick=function(){ask($("in").value)};
+$("in").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){e.preventDefault();ask(this.value);}
+});
+
+var done=0;
+DATA.forEach(function(x){if(x.days)done++;});
+$("sub").textContent="鲜食冻品 · 242 个商品，已录保质期 " + done + " 个";
+
+push("bot",{t:"我是鲜食冻品管家。\n\n能查商品、能算临期和下架日子、能讲规则。\n不联网、不编数字——表里没有的，我会直说没有。\n\n下面是几个常用问题，也可以直接打字问我。",src:"本地知识库 · 零联网"});
+</script>
+</body>
+</html>
